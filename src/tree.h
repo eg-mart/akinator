@@ -1,14 +1,12 @@
-#include <stdio.h>
+#ifndef _TREE_H
+#define _TREE_H
+
+typedef const char* elem_t;
 
 struct Node {
-	char *data;
+	elem_t data;
 	struct Node *left;
 	struct Node *right;
-};
-
-struct Tree {
-	struct Node *root;
-	size_t size;
 };
 
 enum TreeError {
@@ -16,13 +14,9 @@ enum TreeError {
 	TREE_NO_ERR 	= 0,
 };
 
-void tree_ctor(struct Tree *tr);
-enum TreeError node_op_new(struct Node **node, const char *data);
-enum TreeError node_ctor(struct Node *node, const char *data);
-enum TreeError tree_load(struct Tree *tr, FILE *input);
-enum TreeError node_load(struct Node **node, FILE *input);
-void tree_dump(struct Tree *tr);
-void node_dump(struct Node *node);
-void tree_dtor(struct Tree *tr);
+enum TreeError node_op_new(struct Node **node, elem_t data);
+void node_ctor(struct Node *node, elem_t data);
 void node_op_delete(struct Node *node);
 const char *tree_err_to_str(enum TreeError err);
+
+#endif /*_TREE_H*/
