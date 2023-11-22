@@ -6,7 +6,8 @@
 #include "tree.h"
 #include "tree_debug.h"
 #include "logger.h"
-#include "tree_load.h"
+#include "tree_io.h"
+#include "buffer.h"
 
 void guess(struct Node **tr, struct Buffer *buf);
 
@@ -19,28 +20,32 @@ int main()
 {
 	logger_ctor();
 	add_log_handler({stderr, DEBUG, true});
-	FILE *inpt = fopen("tree.txt", "r");
-	if (!inpt) {
-		log_message(ERROR, "Error opening input file\n");
-		return 1;
-	}
 	
-	struct Node *tr = NULL;
 	struct Buffer buf = {};
-	buffer_ctor(&buf, "tree.txt");
+	buffer_ctor(&buf, "save.txt");
 	struct Buffer ans_buf = {};
 	ans_buf.data = (char*) calloc(2048, sizeof(char));
 	ans_buf.size = 2048;
-	enum LoadError err = tree_load(&tr, &buf);
+
+	struct Node *tr = NULL;
+	enum TreeIOError err = tree_load_from_buf(&tr, &buf);
 	if (err < 0)
 		printf("%d\n", err);
+
 	FILE *dump_html = tree_start_html_dump("dump.html");
 	TREE_DUMP_GUI(tr, dump_html, print_str);
+
 	guess(&tr, &ans_buf);
+
 	TREE_DUMP_GUI(tr, dump_html, print_str);
+	FILE *save_file = fopen("save.txt", "w");
+	if (!save_file)
+		log_message(ERROR, "Error opening save file\n");
+	tree_save(tr, save_file);
+
+	fclose(save_file);
 	node_op_delete(tr);
 	tree_end_html_dump(dump_html);
-	fclose(inpt);
 	buffer_dtor(&buf);
 	buffer_dtor(&ans_buf);
 	logger_dtor();
@@ -75,15 +80,33 @@ void guess(struct Node **tr, struct Buffer *buf)
 		
 		if (!new_node) {
 			printf("Хз кто это. Кто это?\n");
+
 			int read = 0;
 			while (read != '\n' && read != EOF)
 				read = getchar();
+
 			fgets(buf_iter, 32, stdin);
+			for (size_t i = 0; buf_iter[i] != '\0'; i++) {
+				if (buf_iter[i] == '\n') {
+					buf_iter[i] = '\0';
+					break;
+				}
+			}
+
 			node_op_new(&cur_node->left, buf_iter);
 			node_op_new(&cur_node->right, cur_node->data);
+
 			buf_iter += strlen(buf_iter) + 1;
+
 			printf("Как он отличается от %s?\n", cur_node->data);
 			fgets(buf_iter, 32, stdin);
+			for (size_t i = 0; buf_iter[i] != '\0'; i++) {
+				if (buf_iter[i] == '\n') {
+					buf_iter[i] = '\0';
+					break;
+				}
+			}
+
 			cur_node->data = buf_iter;
 			buf_iter += strlen(buf_iter) + 1;
 			return;

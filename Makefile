@@ -38,4 +38,4 @@ $(OBJDIR):
 	mkdir -p $(OBJDIR)
 
 clean :
-	rm $(EXE) $(OBJS)
+	rm $(EXE) $(OBJS) dump/*
