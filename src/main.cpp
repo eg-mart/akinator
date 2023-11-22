@@ -10,40 +10,52 @@
 #include "buffer.h"
 #include "cmd_args.h"
 
-struct ProcArgs {
+struct CmdArgs {
 	const char *input_filename;
 	const char *output_filename;
 	const char *dump_filename;
+	bool guess_mode;
 };
 
 enum ArgError handle_input_filename(const char *arg_str, void *processed_args);
 enum ArgError handle_output_filename(const char *arg_str, void *processed_args);
 enum ArgError handle_dump_filename(const char *arg_str, void *processed_args);
-
-const struct ArgDef arg_defs[] = {
-	{"input", 'i', "input filename", false, false, handle_input_filename},
-	{"output", 'o', "output filename", false, false, handle_output_filename},
-	{"dump", 'd', "dump filename", false, false, handle_dump_filename},
-};
+enum ArgError handle_guess_mode(const char *arg_str, void *processed_args);
 
 void guess(struct Node **tr, struct Buffer *buf);
-void print_str(char *buf, size_t n, const char *data)
-{
-	snprintf(buf, n, "%s", data);
-}
+void print_str(char *buf, size_t n, const char *data);
+
+const struct ArgDef arg_defs[] = {
+	{"input", 'i', "Name of input database's file", 
+	 false, false, handle_input_filename},
+
+	{"output", 'o', "Name of output database's file",
+	 false, false, handle_output_filename},
+
+	{"dump", 'd', "Name of the html dump file",
+	 false, false, handle_dump_filename},
+
+	{"guess", 'g', "Enable guessing mode",
+	 true, true, handle_guess_mode},
+};
 
 int main(int argc, const char *argv[])
 {
 	logger_ctor();
 	add_log_handler({stderr, DEBUG, true});
 
-	struct ProcArgs args = {};
-	enum ArgError arg_err = process_args(arg_defs, sizeof(arg_defs) / sizeof(arg_defs[0]),
-					 					 argv, argc, &args);
+	struct CmdArgs args = { NULL, NULL, NULL, false };
+	enum ArgError arg_err = ARG_NO_ERR;
+	arg_err = process_args(arg_defs, sizeof(arg_defs) / sizeof(arg_defs[0]),
+					 	   argv, argc, &args);
 	if (arg_err < 0) {
 		log_message(ERROR, arg_err_to_str(arg_err));
 		logger_dtor();
 		return arg_err;
+	}
+	if (arg_err == ARG_HELP_CALLED) {
+		logger_dtor();
+		return 0;
 	}
 	
 	struct Buffer buf = {};
@@ -76,6 +88,11 @@ int main(int argc, const char *argv[])
 	logger_dtor();
 	
 	return 0;
+}
+
+void print_str(char *buf, size_t n, const char *data)
+{
+	snprintf(buf, n, "%s", data);
 }
 
 void guess(struct Node **tr, struct Buffer *buf)
@@ -143,21 +160,28 @@ void guess(struct Node **tr, struct Buffer *buf)
 
 enum ArgError handle_input_filename(const char *arg_str, void *processed_args)
 {
-	struct ProcArgs *args = (struct ProcArgs*) processed_args;
+	struct CmdArgs *args = (struct CmdArgs*) processed_args;
 	args->input_filename = arg_str;
 	return ARG_NO_ERR;
 }
 
 enum ArgError handle_output_filename(const char *arg_str, void *processed_args)
 {
-	struct ProcArgs *args = (struct ProcArgs*) processed_args;
+	struct CmdArgs *args = (struct CmdArgs*) processed_args;
 	args->output_filename = arg_str;
 	return ARG_NO_ERR;
 }
 
 enum ArgError handle_dump_filename(const char *arg_str, void *processed_args)
 {
-	struct ProcArgs *args = (struct ProcArgs*) processed_args;
+	struct CmdArgs *args = (struct CmdArgs*) processed_args;
 	args->dump_filename = arg_str;
+	return ARG_NO_ERR;
+}
+
+enum ArgError handle_guess_mode(const char *arg_str, void *processed_args)
+{
+	struct CmdArgs *args = (struct CmdArgs*) processed_args;
+	args->guess_mode = true;
 	return ARG_NO_ERR;
 }

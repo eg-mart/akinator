@@ -1,23 +1,21 @@
 #ifndef _CMD_ARGS_H
 #define _CMD_ARGS_H
 
-const size_t LONG_NAME_SIZE = 128;
-const size_t DESCRIPTION_SIZE = 1024;
-
 enum ArgError {
 	ARG_WRONG_ARGS_ERR			= -5,
 	ARG_WRONG_POS_ERR			= -4,
 	ARG_MISSING_ERR				= -3,
 	ARG_MISSING_REQUIRED_ERR	= -2,
 	ARG_NO_ERR					= 0,
+	ARG_HELP_CALLED				= 1,
 };
 
 typedef enum ArgError (*arg_handler)(const char *arg_str, void *processed_args);
 
 struct ArgDef {
-	char long_name[LONG_NAME_SIZE];
+	const char *long_name;
 	char short_name;
-	char description[DESCRIPTION_SIZE];
+	const char *description;
 	bool is_optional;
 	bool is_flag;
 	arg_handler handler;

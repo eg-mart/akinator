@@ -4,6 +4,8 @@
 #include "cmd_args.h"
 #include "logger.h"
 
+static void arg_help_cmd(const struct ArgDef arg_defs[], size_t arg_defs_size);
+
 enum ArgError process_args(const struct ArgDef arg_defs[], size_t arg_defs_size, 
 						   const char *argv[], int argc, void *processed_args)
 {
@@ -16,6 +18,9 @@ enum ArgError process_args(const struct ArgDef arg_defs[], size_t arg_defs_size,
 	while (i < argc) {
 		if (argv[i][0] == '-' && argv[i][1] == '-') {
 			for (size_t def_ind = 0; def_ind < arg_defs_size; def_ind++) {
+				if (!arg_defs[def_ind].long_name)
+					continue;
+				
 				if (strcmp(argv[i] + 2, arg_defs[def_ind].long_name) == 0) {
 					if (!arg_defs[def_ind].is_flag && i >= argc - 1)
 						return ARG_MISSING_ERR;
@@ -35,10 +40,17 @@ enum ArgError process_args(const struct ArgDef arg_defs[], size_t arg_defs_size,
 					break;
 				}
 			}
+			if (strcmp(argv[i] + 2, "help") == 0) {
+				arg_help_cmd(arg_defs, arg_defs_size);
+				return ARG_HELP_CALLED;
+			}
 		} else if (argv[i][0] == '-') {
 			const char *short_name = argv[i] + 1;
 			while (*short_name != '\0') {
 				for (size_t def_ind = 0; def_ind < arg_defs_size; def_ind++) {
+					if (!arg_defs[def_ind].short_name)
+						continue;
+					
 					if (*short_name == arg_defs[def_ind].short_name) {
 						if (!arg_defs[def_ind].is_flag &&
 							(*(short_name + 1) != '\0'))
@@ -61,6 +73,10 @@ enum ArgError process_args(const struct ArgDef arg_defs[], size_t arg_defs_size,
 
 						break;
 					}
+				}
+				if (*short_name == 'h') {
+					arg_help_cmd(arg_defs, arg_defs_size);
+					return ARG_HELP_CALLED;
 				}
 			}
 		} else {
@@ -92,7 +108,21 @@ const char *arg_err_to_str(enum ArgError err)
 			return "Missing a required flag\n";
 		case ARG_NO_ERR:
 			return "No error happened\n";
+		case ARG_HELP_CALLED:
+			return "Help command was called\n";
 		default:
 			return "Unknow error happened\n";
+	}
+}
+
+static void arg_help_cmd(const struct ArgDef arg_defs[], size_t arg_defs_size)
+{
+	for (size_t i = 0; i < arg_defs_size; i++) {
+		if (arg_defs[i].short_name)
+			printf("-%c\n", arg_defs[i].short_name);
+		if (arg_defs[i].long_name)
+			printf("--%s\n", arg_defs[i].long_name);
+		if (arg_defs[i].description)
+			printf("\t%s\n\n", arg_defs[i].description);
 	}
 }
