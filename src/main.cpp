@@ -8,21 +8,46 @@
 #include "logger.h"
 #include "tree_io.h"
 #include "buffer.h"
+#include "cmd_args.h"
+
+struct ProcArgs {
+	const char *input_filename;
+	const char *output_filename;
+	const char *dump_filename;
+};
+
+enum ArgError handle_input_filename(const char *arg_str, void *processed_args);
+enum ArgError handle_output_filename(const char *arg_str, void *processed_args);
+enum ArgError handle_dump_filename(const char *arg_str, void *processed_args);
+
+const struct ArgDef arg_defs[] = {
+	{"input", 'i', "input filename", false, false, handle_input_filename},
+	{"output", 'o', "output filename", false, false, handle_output_filename},
+	{"dump", 'd', "dump filename", false, false, handle_dump_filename},
+};
 
 void guess(struct Node **tr, struct Buffer *buf);
-
 void print_str(char *buf, size_t n, const char *data)
 {
 	snprintf(buf, n, "%s", data);
 }
 
-int main()
+int main(int argc, const char *argv[])
 {
 	logger_ctor();
 	add_log_handler({stderr, DEBUG, true});
+
+	struct ProcArgs args = {};
+	enum ArgError arg_err = process_args(arg_defs, sizeof(arg_defs) / sizeof(arg_defs[0]),
+					 					 argv, argc, &args);
+	if (arg_err < 0) {
+		log_message(ERROR, arg_err_to_str(arg_err));
+		logger_dtor();
+		return arg_err;
+	}
 	
 	struct Buffer buf = {};
-	buffer_ctor(&buf, "save.txt");
+	buffer_ctor(&buf, args.input_filename);
 	struct Buffer ans_buf = {};
 	ans_buf.data = (char*) calloc(2048, sizeof(char));
 	ans_buf.size = 2048;
@@ -32,13 +57,13 @@ int main()
 	if (err < 0)
 		printf("%d\n", err);
 
-	FILE *dump_html = tree_start_html_dump("dump.html");
+	FILE *dump_html = tree_start_html_dump(args.dump_filename);
 	TREE_DUMP_GUI(tr, dump_html, print_str);
 
 	guess(&tr, &ans_buf);
 
 	TREE_DUMP_GUI(tr, dump_html, print_str);
-	FILE *save_file = fopen("save.txt", "w");
+	FILE *save_file = fopen(args.output_filename, "w");
 	if (!save_file)
 		log_message(ERROR, "Error opening save file\n");
 	tree_save(tr, save_file);
@@ -114,4 +139,25 @@ void guess(struct Node **tr, struct Buffer *buf)
 			cur_node = new_node;
 		}
 	}
+}
+
+enum ArgError handle_input_filename(const char *arg_str, void *processed_args)
+{
+	struct ProcArgs *args = (struct ProcArgs*) processed_args;
+	args->input_filename = arg_str;
+	return ARG_NO_ERR;
+}
+
+enum ArgError handle_output_filename(const char *arg_str, void *processed_args)
+{
+	struct ProcArgs *args = (struct ProcArgs*) processed_args;
+	args->output_filename = arg_str;
+	return ARG_NO_ERR;
+}
+
+enum ArgError handle_dump_filename(const char *arg_str, void *processed_args)
+{
+	struct ProcArgs *args = (struct ProcArgs*) processed_args;
+	args->dump_filename = arg_str;
+	return ARG_NO_ERR;
 }

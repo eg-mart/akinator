@@ -7,7 +7,7 @@
 static enum TreeIOError _tree_load(struct Node **tree, char **buf);
 static char *skip_space(char *str);
 static size_t get_word_len(const char *str);
-static enum TreeIOError mark_between_brackets(char **buf);
+static enum TreeIOError cut_between_brackets(char **buf);
 void _subtree_save(const struct Node *node, FILE *out, size_t level);
 
 enum TreeIOError tree_load_from_buf(struct Node **tree, struct Buffer *buf)
@@ -39,7 +39,7 @@ static size_t get_word_len(const char *str)
 	return len;
 }
 
-static enum TreeIOError mark_between_brackets(char **buf)
+static enum TreeIOError cut_between_brackets(char **buf)
 {
 	assert(buf);
 	assert(*buf);
@@ -72,7 +72,7 @@ static enum TreeIOError _tree_load(struct Node **tree, char **buf)
 	}
 	if (strncmp(*buf, "(", word_len) == 0 && word_len == strlen("("))  {
 		*buf = skip_space(*buf + word_len);
-		enum TreeIOError trio_err = mark_between_brackets(buf);
+		enum TreeIOError trio_err = cut_between_brackets(buf);
 		if (trio_err < 0)
 			return trio_err;
 		enum TreeError tr_err = node_op_new(tree, *buf);
