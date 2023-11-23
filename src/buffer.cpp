@@ -5,7 +5,21 @@
 
 #include "buffer.h"
 
-enum BufferError buffer_ctor(struct Buffer *buf, const char *filename)
+static enum BufferError buffer_resize(struct Buffer *buf, size_t new_size);
+static enum BufferError get_file_size(FILE *file, size_t *size);
+
+enum BufferError buffer_ctor(struct Buffer *buf)
+{
+	assert(buf);
+
+	enum BufferError err = buffer_resize(buf, BUF_INIT_SIZE);
+	if (err < 0)
+		return err;
+	buffer_reset(buf);
+	return err;
+}
+
+enum BufferError buffer_load_from_file(struct Buffer *buf, const char *filename)
 {
 	assert(buf);
 	assert(filename);
@@ -18,26 +32,42 @@ enum BufferError buffer_ctor(struct Buffer *buf, const char *filename)
 	enum BufferError err = get_file_size(input, &filesize);
 	if (err < 0)
 		return err;
-	buf->size = filesize + 1;
+	buffer_resize(buf, filesize + 1);
 
-	buf->data = (char*) calloc(buf->size, sizeof(char));
-	if (!buf->data)
-		return BUF_NO_MEM_ERR;
-	size_t read_chars = fread(buf->data, sizeof(char), buf->size - 1, input);
-	if (read_chars < buf->size - 1)
+	size_t read_chars = fread(buf->data, sizeof(char), buf->cap - 1, input);
+	if (read_chars < buf->cap - 1)
 		return BUF_FILE_READ_ERR;
+	buffer_reset(buf);
 
+	return BUF_NO_ERR;
+}
+
+void buffer_reset(struct Buffer *buf)
+{
+	assert(buf);
+
+	buf->pos = buf->data;
+}
+
+static enum BufferError buffer_resize(struct Buffer *buf, size_t new_size)
+{
+	char *tmp = (char*) realloc(buf->data, new_size * sizeof(char));
+	if (!tmp)
+		return BUF_NO_MEM_ERR;
+	buf->data = tmp;
+	buf->cap = new_size;
 	return BUF_NO_ERR;
 }
 
 void buffer_dtor(struct Buffer *buf)
 {
-	buf->size = 0;
+	buf->cap = 0;
 	free(buf->data);
 	buf->data = NULL;
+	buf->pos = NULL;
 }
 
-enum BufferError get_file_size(FILE *file, size_t *size)
+static enum BufferError get_file_size(FILE *file, size_t *size)
 {
 	assert(file);
 	assert(size);

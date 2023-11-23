@@ -10,7 +10,7 @@
 	tree_dump_gui((tr), (print_el), (file), __FILE__, __PRETTY_FUNCTION__, \
 				 __LINE__, #tr)
 
-typedef void (*print_func)(char*, size_t, elem_t);
+typedef void (*print_func)(char*, elem_t, size_t);
 
 void tree_dump_log(const struct Node *tr, print_func print_el,
 				   const char *filename, const char *funcname, int line,

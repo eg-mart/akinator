@@ -69,7 +69,7 @@ enum ArgError process_args(const struct ArgDef arg_defs[], size_t arg_defs_size,
 						
 						short_name++;
 						if (!arg_defs[def_ind].is_flag)
-							i += 2;
+							i += 1;
 
 						break;
 					}
@@ -79,6 +79,7 @@ enum ArgError process_args(const struct ArgDef arg_defs[], size_t arg_defs_size,
 					return ARG_HELP_CALLED;
 				}
 			}
+			i++;
 		} else {
 			return ARG_WRONG_ARGS_ERR;
 		}

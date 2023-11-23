@@ -52,7 +52,7 @@ static void _subtree_dump_log(const struct Node *node, print_func print_el,
 		log_string(DEBUG, "   ");
 
 	buf[0] = '\0';
-	print_el(buf, ELEM_BUF_SIZE - 1, node->data);
+	print_el(buf, node->data, ELEM_BUF_SIZE - 1);
 	log_string(DEBUG, "   %s\n", buf);
 
 	_subtree_dump_log(node->left, print_el, level + 1);
@@ -171,7 +171,7 @@ static void _subtree_dump_gui(const struct Node *node, print_func print_el,
 
 	static char buf[ELEM_BUF_SIZE] = {};
 	buf[0] = '\0';
-	print_el(buf, ELEM_BUF_SIZE - 1, node->data);
+	print_el(buf, node->data, ELEM_BUF_SIZE - 1);
 	fprintf(dump, "node%lu [label=\"{%s | {", node_id, buf);
 	if (node->left)
 		fputs("да", dump);

@@ -5,7 +5,8 @@
 
 struct Buffer {
 	char *data;
-	size_t size;
+	char *pos;
+	size_t cap;
 };
 
 enum BufferError {
@@ -15,8 +16,12 @@ enum BufferError {
 	BUF_NO_ERR			= 0,
 };
 
-enum BufferError buffer_ctor(struct Buffer *buf, const char *filename);
+const size_t BUF_INIT_SIZE = 2048;
+const size_t BUF_GROW_COEFF = 2;
+
+enum BufferError buffer_ctor(struct Buffer *buf);
+enum BufferError buffer_load_from_file(struct Buffer *buf, const char *filename);
+void buffer_reset(struct Buffer *buf);
 void buffer_dtor(struct Buffer *buf);
-enum BufferError get_file_size(FILE *file, size_t *size);
 
 #endif /*_BUFFER_H*/
