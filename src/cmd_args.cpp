@@ -39,7 +39,7 @@ enum ArgError process_args(const struct ArgDef arg_defs[], size_t arg_defs_size,
 				}
 			}
 			if (strcmp(argv[i] + 2, "help") == 0) {
-				arg_show_usage(arg_defs, arg_defs_size);
+				arg_show_usage(arg_defs, arg_defs_size, argv[0]);
 				return ARG_HELP_CALLED;
 			}
 		} else if (argv[i][0] == '-') {
@@ -75,7 +75,7 @@ enum ArgError process_args(const struct ArgDef arg_defs[], size_t arg_defs_size,
 					}
 				}
 				if (*short_name == 'h') {
-					arg_show_usage(arg_defs, arg_defs_size);
+					arg_show_usage(arg_defs, arg_defs_size, argv[0]);
 					return ARG_HELP_CALLED;
 				}
 				if (!processed)
@@ -118,9 +118,10 @@ const char *arg_err_to_str(enum ArgError err)
 	}
 }
 
-void arg_show_usage(const struct ArgDef arg_defs[], size_t arg_defs_size)
+void arg_show_usage(const struct ArgDef arg_defs[], size_t arg_defs_size,
+					const char* program_name)
 {
-	printf("Usage: akinator");
+	printf("Usage: %s", program_name);
 	for (size_t i = 0; i < arg_defs_size; i++) {
 		printf(" ");
 		if (arg_defs[i].is_optional)

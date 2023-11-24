@@ -85,7 +85,7 @@ int main(int argc, const char *argv[])
 	arg_err = process_args(arg_defs, ARG_DEFS_SIZE, argv, argc, &args);
 	if (arg_err < 0) {
 		log_message(ERROR, "Argument error: %s\n", arg_err_to_str(arg_err));
-		arg_show_usage(arg_defs, ARG_DEFS_SIZE);
+		arg_show_usage(arg_defs, ARG_DEFS_SIZE, argv[0]);
 		ret_val = ARG_ERR;
 		goto finally;
 	} else if (arg_err == ARG_HELP_CALLED) {
@@ -148,7 +148,7 @@ int main(int argc, const char *argv[])
 		compare(tr);
 	} else {
 		log_message(ERROR, "Program mode wasn't specified\n");
-		arg_show_usage(arg_defs, ARG_DEFS_SIZE);
+		arg_show_usage(arg_defs, ARG_DEFS_SIZE, argv[0]);
 		ret_val = ARG_ERR;
 		goto finally;
 	}
