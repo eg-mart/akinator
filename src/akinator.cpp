@@ -6,12 +6,12 @@
 #include "akinator.h"
 #include "logger.h"
 
-static enum AkError make_stack(const struct Node *tr, const char *elem,
+static enum AkErrorCode make_stack(const struct Node *tr, const char *elem,
 							   struct Stack *stk);
 static void cut_after_newline(char *str, size_t n);
 static void print_int(char *buf, int data, size_t n);
 
-enum AkError guess(struct Node **tr, struct Buffer *buf)
+enum AkErrorCode guess(struct Node **tr, struct Buffer *buf)
 {
 	struct Node *cur_node = *tr;
 	
@@ -63,7 +63,7 @@ enum AkError guess(struct Node **tr, struct Buffer *buf)
 	return AK_NO_ERR;
 }
 
-static enum AkError make_stack(const struct Node *tr, const char *elem,
+static enum AkErrorCode make_stack(const struct Node *tr, const char *elem,
 							   struct Stack *stk)
 {
 	assert(elem);
@@ -87,7 +87,7 @@ static enum AkError make_stack(const struct Node *tr, const char *elem,
 	return AK_NO_ERR;;
 }
 
-enum AkError describe(const struct Node *tr)
+enum AkErrorCode describe(const struct Node *tr)
 {
 	char ans_buf[ANS_BUF_SIZE] = {};
 	puts("Кого хочешь описать?");
@@ -118,7 +118,7 @@ enum AkError describe(const struct Node *tr)
 	return AK_NO_ERR;
 }
 
-enum AkError compare(const struct Node *tr)
+enum AkErrorCode compare(const struct Node *tr)
 {
 	char ans1_buf[ANS_BUF_SIZE] = {};
 	char ans2_buf[ANS_BUF_SIZE] = {};
@@ -208,5 +208,3 @@ static void print_int(char *buf, int data, size_t n)
 {
 	snprintf(buf, n, "%d", data);
 }
-
-
