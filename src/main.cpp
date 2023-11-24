@@ -271,10 +271,10 @@ int compare(const struct Node *tr)
 		}
 	}
 
-	err = STACK_NO_ERR;
+	enum StackError err1 = err;
 	printf("Помимо этого, %s:\n", ans1_buf);
 	const struct Node *cur_node1 = cur_node;
-	while (err >= 0) {
+	while (err1 >= 0) {
 		if (val1) {
 			printf("-Не %s\n", cur_node1->data);
 			cur_node1 = cur_node1->right;
@@ -282,13 +282,13 @@ int compare(const struct Node *tr)
 			printf("-%s\n", cur_node1->data);
 			cur_node1 = cur_node1->left;
 		}
-		err = stack_pop(&stk1, &val1);
+		err1 = stack_pop(&stk1, &val1);
 	}
 
-	err = STACK_NO_ERR;
+	enum StackError err2 = err;
 	printf("Помимо этого, %s:\n", ans2_buf);
 	const struct Node *cur_node2 = cur_node;
-	while (err >= 0) {
+	while (err2 >= 0) {
 		if (val2) {
 			printf("-Не %s\n", cur_node2->data);
 			cur_node2 = cur_node2->right;
@@ -296,7 +296,7 @@ int compare(const struct Node *tr)
 			printf("-%s\n", cur_node2->data);
 			cur_node2 = cur_node2->left;
 		}
-		err = stack_pop(&stk2, &val2);
+		err2 = stack_pop(&stk2, &val2);
 	}
 
 	stack_dtor(&stk1);
