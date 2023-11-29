@@ -8,7 +8,7 @@ static enum TreeIOError _tree_load(struct Node **tree, char **buf);
 static char *skip_space(char *str);
 static size_t get_word_len(const char *str);
 static enum TreeIOError cut_between_brackets(char **buf);
-void _subtree_save(const struct Node *node, FILE *out, size_t level);
+static void _subtree_save(const struct Node *node, FILE *out, size_t level);
 
 enum TreeIOError tree_load_from_buf(struct Node **tree, struct Buffer *buf)
 {
@@ -101,7 +101,7 @@ void tree_save(const struct Node *tree, FILE *out)
 	_subtree_save(tree, out, 0);
 }
 
-void _subtree_save(const struct Node *node, FILE *out, size_t level)
+static void _subtree_save(const struct Node *node, FILE *out, size_t level)
 {
 	assert(out);
 

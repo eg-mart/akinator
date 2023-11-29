@@ -19,8 +19,8 @@ void node_ctor(struct Node *node, elem_t data)
 {
 	assert(node);
 
-	node->data = data;
-	node->left = NULL;
+	node->data  = data;
+	node->left  = NULL;
 	node->right = NULL;
 }
 

@@ -165,3 +165,19 @@ enum StackError stack_pop(struct Stack *stk, stk_elem_t *value)
 
 	return STACK_NO_ERR;
 }
+
+const char *stack_err_to_str(enum StackError err)
+{
+	switch (err) {
+		case ERR_STACK_EMPTY:
+			return "Attempted to pop from an empty stack";
+		case STACK_FAILED:
+			return "A failure was detected in the stack";
+		case ERR_NO_MEM:
+			return "Not enough memory";
+		case STACK_NO_ERR:
+			return "No error occured";
+		default:
+			return "An unknown error occured";
+	}
+}

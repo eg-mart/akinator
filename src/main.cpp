@@ -11,11 +11,12 @@
 #include "akinator.h"
 
 enum Error {
+	AK_ERR	 = -5,
 	FILE_ERR = -4,
-	ARG_ERR = -3,
-	BUF_ERR = -1,
+	ARG_ERR  = -3,
+	BUF_ERR  = -1,
 	TRIO_ERR = -2,
-	NO_ERR = 0,
+	NO_ERR   =  0,
 };
 
 struct CmdArgs {
@@ -23,9 +24,10 @@ struct CmdArgs {
 	const char *output_filename;
 	const char *dump_filename;
 	const char *log_filename;
-	bool guess_mode;
+	bool guess_mode; // enum
 	bool comparison_mode;
 	bool description_mode;
+	bool do_speak;
 };
 
 enum ArgError handle_input_filename(const char *arg_str, void *processed_args);
@@ -35,11 +37,12 @@ enum ArgError handle_log_filename(const char *arg_str, void *processed_args);
 enum ArgError handle_guess_mode(const char *arg_str, void *processed_args);
 enum ArgError handle_comparison_mode(const char *arg_str, void *processed_args);
 enum ArgError handle_description_mode(const char *arg_str, void *processed_args);
+enum ArgError handle_speaking_mode(const char *arg_str, void *processed_args);
 
 void print_str(char *buf, const char *data, size_t n);
 
 const struct ArgDef arg_defs[] = {
-	{"input", 'i', "Name of the input database's file", 
+	{"input", 'i', "Name of the input database's file",
 	 false, false, handle_input_filename},
 
 	{"output", 'o', "Name of the output database's file. Optional: if not specified, database won't be saved",
@@ -59,13 +62,17 @@ const struct ArgDef arg_defs[] = {
 
 	{"describe", '\0', "Enable description mode",
 	 true, true, handle_description_mode},
+
+	{"speak", 's', "Enable speaking",
+	 true, true, handle_speaking_mode},
 };
 const size_t ARG_DEFS_SIZE = sizeof(arg_defs) / sizeof(arg_defs[0]);
+const size_t ERR_BUF_SIZE = 1024;
 
 int main(int argc, const char *argv[])
 {
 	logger_ctor();
-	add_log_handler({stderr, ERROR, true});
+	add_log_handler({stderr, DEBUG, true});
 
 	int ret_val = NO_ERR;
 
@@ -74,9 +81,11 @@ int main(int argc, const char *argv[])
 	struct Buffer ans_buf = {};
 	struct Node *tr = NULL;
 
+	char err_buf[ERR_BUF_SIZE] = {};
 	enum ArgError arg_err = ARG_NO_ERR;
 	enum BufferError buf_err = BUF_NO_ERR;
 	enum TreeIOError trio_err = TRIO_NO_ERR;
+	struct AkError ak_err = compose_err(AK_NO_ERR, "");
 
 	FILE *save_file = NULL;
 	FILE *dump_html = NULL;
@@ -101,7 +110,7 @@ int main(int argc, const char *argv[])
 		}
 		add_log_handler({log_file, DEBUG, false});
 	}
-	
+
 	buf_err = buffer_ctor(&buf);
 	if (buf_err < 0) {
 		log_message(ERROR, "Buffer error: %s\n", buffer_err_to_str(buf_err));
@@ -124,7 +133,7 @@ int main(int argc, const char *argv[])
 
 	trio_err = tree_load_from_buf(&tr, &buf);
 	if (trio_err < 0) {
-		log_message(ERROR, "Tree input error: %s\n", 
+		log_message(ERROR, "Tree input error: %s\n",
 					tree_io_err_to_str(trio_err));
 		ret_val = TRIO_ERR;
 		goto finally;
@@ -141,11 +150,11 @@ int main(int argc, const char *argv[])
 	}
 
 	if (args.guess_mode) {
-		guess(&tr, &ans_buf);
+		ak_err = guess(&tr, &ans_buf, args.do_speak);
 	} else if (args.description_mode) {
-		describe(tr);
+		ak_err = describe(tr, args.do_speak);
 	} else if (args.comparison_mode) {
-		compare(tr);
+		ak_err = compare(tr, args.do_speak);
 	} else {
 		log_message(ERROR, "Program mode wasn't specified\n");
 		arg_show_usage(arg_defs, ARG_DEFS_SIZE, argv[0]);
@@ -153,7 +162,15 @@ int main(int argc, const char *argv[])
 		goto finally;
 	}
 
-	if (dump_html)
+	if (ak_err.code < 0) {
+		ak_err_to_str(err_buf, ak_err, ERR_BUF_SIZE);
+		log_message(ERROR, "Akinator error: %s\n", err_buf);
+		ret_val = AK_ERR;
+		goto finally;
+	}
+
+	if (dump_html) //{
+		//        +xx
 		TREE_DUMP_GUI(tr, dump_html, print_str);
 
 	if (args.output_filename) {
@@ -163,6 +180,7 @@ int main(int argc, const char *argv[])
 			ret_val = FILE_ERR;
 			goto finally;
 		}
+		// maybe some errors?
 		tree_save(tr, save_file);
 	}
 
@@ -177,7 +195,7 @@ int main(int argc, const char *argv[])
 			tree_end_html_dump(dump_html);
 		if (log_file)
 			fclose(log_file);
-	
+
 	return ret_val;
 }
 
@@ -238,5 +256,12 @@ enum ArgError handle_description_mode(const char */*arg_str*/, void *processed_a
 	if (args->guess_mode || args->comparison_mode)
 		return ARG_WRONG_ARGS_ERR;
 	args->description_mode = true;
+	return ARG_NO_ERR;
+}
+
+enum ArgError handle_speaking_mode(const char */*arg_str*/, void *processed_args)
+{
+	struct CmdArgs *args = (struct CmdArgs*) processed_args;
+	args->do_speak = true;
 	return ARG_NO_ERR;
 }

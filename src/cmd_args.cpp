@@ -150,6 +150,6 @@ void arg_show_usage(const struct ArgDef arg_defs[], size_t arg_defs_size,
 		if (arg_defs[i].short_name)
 			printf(" -%c", arg_defs[i].short_name);
 		if (arg_defs[i].description)
-			printf(" \t%s\n\n", arg_defs[i].description);
+			printf(" \t%s\n", arg_defs[i].description);
 	}
 }

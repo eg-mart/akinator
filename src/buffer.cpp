@@ -69,6 +69,13 @@ void buffer_dtor(struct Buffer *buf)
 	buf->pos = NULL;
 }
 
+size_t buffer_size(struct Buffer *buf)
+{
+	if (!buf->pos)
+		return 0;
+	return (size_t) (buf->pos - buf->data);
+}
+
 static enum BufferError get_file_size(FILE *file, size_t *size)
 {
 	assert(file);

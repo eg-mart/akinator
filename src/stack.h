@@ -55,5 +55,6 @@ enum StackError stack_ctor(struct Stack *stk, stk_print_func print_elem,
 enum StackError stack_dtor(struct Stack *stk);
 enum StackError stack_push(struct Stack *stk, stk_elem_t value);
 enum StackError stack_pop(struct Stack *stk, stk_elem_t *value);
+const char *stack_err_to_str(enum StackError err);
 
 #endif

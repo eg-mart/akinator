@@ -23,6 +23,7 @@ enum BufferError buffer_ctor(struct Buffer *buf);
 enum BufferError buffer_load_from_file(struct Buffer *buf, const char *filename);
 void buffer_reset(struct Buffer *buf);
 void buffer_dtor(struct Buffer *buf);
+size_t buffer_size(struct Buffer *buf);
 const char *buffer_err_to_str(enum BufferError err);
 
 #endif /*_BUFFER_H*/
